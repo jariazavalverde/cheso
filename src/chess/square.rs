@@ -1,5 +1,5 @@
 // Square representation.
-#[derive(Copy, Clone, PartialEq, PartialOrd)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Square {
     pub x: isize,
     pub y: isize,
