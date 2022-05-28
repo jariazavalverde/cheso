@@ -7,10 +7,6 @@ use std::vec::Vec;
 // Movement representation (from, to, promotion).
 type Movement = (Square, Square, Option<Piece>);
 
-// Knight moves.
-static KNIGHT_MOVES: &'static [(isize, isize)] =
-    &[(1, 2), (2, 1), (-1, 2), (2, -1), (1, -2), (-2, 1)];
-
 // Board representation.
 pub struct Board {
     pub white_pieces: HashMap<Square, Piece>,
@@ -110,70 +106,58 @@ impl Board {
         moves
     }
 
-    // Populate the list of pawn movements.
+    // Populate the list with pawn movements.
     fn pawn_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         ()
     }
 
-    // Populate the list of knight movements.
+    // Populate the list with knight movements.
     fn knight_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
-        for i in 0..KNIGHT_MOVES.len() {
-            let square_to: Square = Square {
-                rank: square.rank + KNIGHT_MOVES[i].1,
-                file: square.file + KNIGHT_MOVES[i].0,
-            };
-            if square_to.on_board() {
-                match self.get_square(square) {
-                    None => moves.push((*square, square_to, None)),
-                    Some((piece, color)) if color != self.side_to_move => {
-                        moves.push((*square, square_to, None))
-                    }
-                    _ => (),
-                }
-            }
-        }
+        // l-movements
+        self.moves_until_collision(square, square.get_l_squares(), true, moves);
     }
 
-    // Populate the list of bishop movements.
+    // Populate the list with bishop movements.
     fn bishop_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         // northeast
-        self.moves_until_collision(square, square.get_northeast_squares(), moves);
+        self.moves_until_collision(square, square.get_northeast_squares(), false, moves);
         // northwest
-        self.moves_until_collision(square, square.get_northwest_squares(), moves);
+        self.moves_until_collision(square, square.get_northwest_squares(), false, moves);
         // southeast
-        self.moves_until_collision(square, square.get_southeast_squares(), moves);
+        self.moves_until_collision(square, square.get_southeast_squares(), false, moves);
         // southwest
-        self.moves_until_collision(square, square.get_southwest_squares(), moves);
+        self.moves_until_collision(square, square.get_southwest_squares(), false, moves);
     }
 
-    // Populate the list of rook movements.
+    // Populate the list with rook movements.
     fn rook_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         // north
-        self.moves_until_collision(square, square.get_north_squares(), moves);
+        self.moves_until_collision(square, square.get_north_squares(), false, moves);
         // south
-        self.moves_until_collision(square, square.get_south_squares(), moves);
+        self.moves_until_collision(square, square.get_south_squares(), false, moves);
         // east
-        self.moves_until_collision(square, square.get_east_squares(), moves);
+        self.moves_until_collision(square, square.get_east_squares(), false, moves);
         // west
-        self.moves_until_collision(square, square.get_west_squares(), moves);
+        self.moves_until_collision(square, square.get_west_squares(), false, moves);
     }
 
-    // Populate the list of queen movements.
+    // Populate the list with queen movements.
     fn queen_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         self.bishop_moves(square, moves);
         self.rook_moves(square, moves);
     }
 
-    // Populate the list of king movements.
+    // Populate the list with king movements.
     fn king_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         ()
     }
 
-    // Populate the list of movements until collision with another piece.
+    // Populate the list with movements until collision with another piece.
     fn moves_until_collision(
         &self,
         square: &Square,
         candidates: Vec<Square>,
+        jump: bool,
         moves: &mut Vec<Movement>,
     ) -> () {
         for i in 0..candidates.len() {
@@ -182,10 +166,14 @@ impl Board {
                 None => moves.push((*square, square_to, None)),
                 Some((_, color)) if color != self.side_to_move => {
                     moves.push((*square, square_to, None));
-                    break;
+                    if !jump {
+                        break;
+                    }
                 }
                 _ => {
-                    break;
+                    if !jump {
+                        break;
+                    }
                 }
             }
         }
