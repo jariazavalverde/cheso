@@ -2,6 +2,24 @@ use crate::chess::color::Color;
 use crate::chess::piece::Piece;
 use std::vec::Vec;
 
+#[macro_export]
+macro_rules! moves_until_collision {
+    ( $board:expr, $square:expr, $candidates:expr, $moves:expr ) => {
+        for square_to in $candidates {
+            let piece: Piece = $board.get_square(square_to);
+            match piece.get_color() {
+                None => $moves.push(($square, square_to, Piece::Nil)),
+                Some(color) => {
+                    if color != $board.side_to_move {
+                        $moves.push(($square, square_to, Piece::Nil))
+                    }
+                    break;
+                }
+            }
+        }
+    };
+}
+
 // Square representation.
 type Square = (isize, isize);
 
@@ -111,7 +129,7 @@ impl Board {
         return x >= 1 && x <= 8 && y >= 1 && y <= 8;
     }
 
-    // Get square content by indices x, y in [1,8].
+    // Get square content by indices $(x, y) \in [1,8]^2$.
     pub fn get_square(&self, square: Square) -> Piece {
         let (x, y) = square;
         let index: isize = (y - 1) * 8 + x - 1;
@@ -179,38 +197,18 @@ impl Board {
     // Populate the list of rook movements.
     fn rook_moves(&self, square: Square, moves: &mut Vec<Movement>) -> () {
         let (x, y) = square;
-        // vertical
-        for j in 1..=8 {
-            if y != j {
-                let square_to: Square = (x, j);
-                let piece: Piece = self.get_square(square_to);
-                match piece.get_color() {
-                    None => moves.push((square, square_to, Piece::Nil)),
-                    Some(color) => {
-                        if color != self.side_to_move {
-                            moves.push((square, square_to, Piece::Nil))
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-        // horizontal
-        for i in 1..=8 {
-            if x != i {
-                let square_to: Square = (i, y);
-                let piece: Piece = self.get_square(square_to);
-                match piece.get_color() {
-                    None => moves.push((square, square_to, Piece::Nil)),
-                    Some(color) => {
-                        if color != self.side_to_move {
-                            moves.push((square, square_to, Piece::Nil))
-                        }
-                        break;
-                    }
-                }
-            }
-        }
+        // south
+        let south = (1..y).rev().map(|y: isize| (x, y));
+        moves_until_collision!(self, square, south, moves);
+        // north
+        let north = (y + 1..=8).map(|y: isize| (x, y));
+        moves_until_collision!(self, square, north, moves);
+        // east
+        let east = (1..x).rev().map(|x: isize| (x, y));
+        moves_until_collision!(self, square, east, moves);
+        // west
+        let west = (x + 1..=8).map(|x: isize| (x, y));
+        moves_until_collision!(self, square, west, moves);
     }
 
     // Populate the list of queen movements.
