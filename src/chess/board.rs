@@ -4,24 +4,6 @@ use crate::chess::square::Square;
 use std::collections::HashMap;
 use std::vec::Vec;
 
-#[macro_export]
-macro_rules! moves_until_collision {
-    ( $board:expr, $square:expr, $candidates:expr, $moves:expr ) => {
-        for square_to in $candidates {
-            match $board.get_square(&square_to) {
-                None => $moves.push(($square, square_to, None)),
-                Some((_, color)) if color != $board.side_to_move => {
-                    $moves.push(($square, square_to, None));
-                    break;
-                }
-                _ => {
-                    break;
-                }
-            }
-        }
-    };
-}
-
 // Movement representation (from, to, promotion).
 type Movement = (Square, Square, Option<Piece>);
 
@@ -47,7 +29,22 @@ impl Board {
     pub fn init() -> Board {
         let mut white_pieces: HashMap<Square, Piece> = HashMap::new();
         let mut black_pieces: HashMap<Square, Piece> = HashMap::new();
-        white_pieces.insert(Square { x: 1, y: 1 }, Piece::Rook);
+        white_pieces.insert(Square { file: 1, rank: 1 }, Piece::Rook);
+        white_pieces.insert(Square { file: 2, rank: 1 }, Piece::Knight);
+        white_pieces.insert(Square { file: 3, rank: 1 }, Piece::Bishop);
+        white_pieces.insert(Square { file: 4, rank: 1 }, Piece::Queen);
+        white_pieces.insert(Square { file: 5, rank: 1 }, Piece::King);
+        white_pieces.insert(Square { file: 6, rank: 1 }, Piece::Bishop);
+        white_pieces.insert(Square { file: 7, rank: 1 }, Piece::Knight);
+        white_pieces.insert(Square { file: 8, rank: 1 }, Piece::Rook);
+        white_pieces.insert(Square { file: 1, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 2, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 3, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 4, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 5, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 6, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 7, rank: 2 }, Piece::Pawn);
+        white_pieces.insert(Square { file: 8, rank: 2 }, Piece::Pawn);
         Board {
             white_pieces: white_pieces,
             black_pieces: black_pieces,
@@ -106,8 +103,8 @@ impl Board {
     fn knight_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         for i in 0..KNIGHT_MOVES.len() {
             let square_to: Square = Square {
-                x: square.x + KNIGHT_MOVES[i].0,
-                y: square.y + KNIGHT_MOVES[i].1,
+                rank: square.rank + KNIGHT_MOVES[i].1,
+                file: square.file + KNIGHT_MOVES[i].0,
             };
             if square_to.on_board() {
                 match self.get_square(square) {
@@ -130,21 +127,29 @@ impl Board {
     // Populate the list of rook movements.
     fn rook_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         // south
-        let south = (1..square.y)
-            .rev()
-            .map(|y: isize| Square { x: square.x, y: y });
-        moves_until_collision!(self, *square, south, moves);
+        let south = (1..square.rank).rev().map(|rank: isize| Square {
+            rank,
+            file: square.file,
+        });
+        self.moves_until_collision(square, south, moves);
         // north
-        let north = (square.y + 1..=8).map(|y: isize| Square { x: square.x, y: y });
-        moves_until_collision!(self, *square, north, moves);
+        let north = (square.rank + 1..=8).map(|rank: isize| Square {
+            rank,
+            file: square.file,
+        });
+        self.moves_until_collision(square, north, moves);
         // east
-        let east = (1..square.x)
-            .rev()
-            .map(|x: isize| Square { x: x, y: square.y });
-        moves_until_collision!(self, *square, east, moves);
+        let east = (1..square.file).rev().map(|file: isize| Square {
+            rank: square.rank,
+            file,
+        });
+        self.moves_until_collision(square, east, moves);
         // west
-        let west = (square.x + 1..=8).map(|x: isize| Square { x: x, y: square.y });
-        moves_until_collision!(self, *square, west, moves);
+        let west = (square.file + 1..=8).map(|file: isize| Square {
+            rank: square.rank,
+            file,
+        });
+        self.moves_until_collision(square, west, moves);
     }
 
     // Populate the list of queen movements.
@@ -156,5 +161,29 @@ impl Board {
     // Populate the list of king movements.
     fn king_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
         ()
+    }
+
+    // Populate the list of movements until collision with another piece.
+    fn moves_until_collision<I>(
+        &self,
+        square: &Square,
+        candidates: I,
+        moves: &mut Vec<Movement>,
+    ) -> ()
+    where
+        I: Iterator<Item = Square>,
+    {
+        for square_to in candidates {
+            match self.get_square(&square_to) {
+                None => moves.push((*square, square_to, None)),
+                Some((_, color)) if color != self.side_to_move => {
+                    moves.push((*square, square_to, None));
+                    break;
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
     }
 }
