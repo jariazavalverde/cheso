@@ -45,6 +45,22 @@ impl Board {
         white_pieces.insert(Square { file: 6, rank: 2 }, Piece::Pawn);
         white_pieces.insert(Square { file: 7, rank: 2 }, Piece::Pawn);
         white_pieces.insert(Square { file: 8, rank: 2 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 1, rank: 8 }, Piece::Rook);
+        black_pieces.insert(Square { file: 2, rank: 8 }, Piece::Knight);
+        black_pieces.insert(Square { file: 3, rank: 8 }, Piece::Bishop);
+        black_pieces.insert(Square { file: 4, rank: 8 }, Piece::Queen);
+        black_pieces.insert(Square { file: 5, rank: 8 }, Piece::King);
+        black_pieces.insert(Square { file: 6, rank: 8 }, Piece::Bishop);
+        black_pieces.insert(Square { file: 7, rank: 8 }, Piece::Knight);
+        black_pieces.insert(Square { file: 8, rank: 8 }, Piece::Rook);
+        black_pieces.insert(Square { file: 1, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 2, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 3, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 4, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 5, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 6, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 7, rank: 7 }, Piece::Pawn);
+        black_pieces.insert(Square { file: 8, rank: 7 }, Piece::Pawn);
         Board {
             white_pieces: white_pieces,
             black_pieces: black_pieces,
@@ -120,36 +136,26 @@ impl Board {
 
     // Populate the list of bishop movements.
     fn bishop_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
-        // south-west
-        // north-east
+        // northeast
+        self.moves_until_collision(square, square.get_northeast_squares(), moves);
+        // northwest
+        self.moves_until_collision(square, square.get_northwest_squares(), moves);
+        // southeast
+        self.moves_until_collision(square, square.get_southeast_squares(), moves);
+        // southwest
+        self.moves_until_collision(square, square.get_southwest_squares(), moves);
     }
 
     // Populate the list of rook movements.
     fn rook_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
-        // south
-        let south = (1..square.rank).rev().map(|rank: isize| Square {
-            rank,
-            file: square.file,
-        });
-        self.moves_until_collision(square, south, moves);
         // north
-        let north = (square.rank + 1..=8).map(|rank: isize| Square {
-            rank,
-            file: square.file,
-        });
-        self.moves_until_collision(square, north, moves);
+        self.moves_until_collision(square, square.get_north_squares(), moves);
+        // south
+        self.moves_until_collision(square, square.get_south_squares(), moves);
         // east
-        let east = (1..square.file).rev().map(|file: isize| Square {
-            rank: square.rank,
-            file,
-        });
-        self.moves_until_collision(square, east, moves);
+        self.moves_until_collision(square, square.get_east_squares(), moves);
         // west
-        let west = (square.file + 1..=8).map(|file: isize| Square {
-            rank: square.rank,
-            file,
-        });
-        self.moves_until_collision(square, west, moves);
+        self.moves_until_collision(square, square.get_west_squares(), moves);
     }
 
     // Populate the list of queen movements.
@@ -164,16 +170,14 @@ impl Board {
     }
 
     // Populate the list of movements until collision with another piece.
-    fn moves_until_collision<I>(
+    fn moves_until_collision(
         &self,
         square: &Square,
-        candidates: I,
+        candidates: Vec<Square>,
         moves: &mut Vec<Movement>,
-    ) -> ()
-    where
-        I: Iterator<Item = Square>,
-    {
-        for square_to in candidates {
+    ) -> () {
+        for i in 0..candidates.len() {
+            let square_to: Square = candidates[i];
             match self.get_square(&square_to) {
                 None => moves.push((*square, square_to, None)),
                 Some((_, color)) if color != self.side_to_move => {
