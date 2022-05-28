@@ -1,4 +1,5 @@
 // Enumeration of piece-color codes.
+#[derive(Copy, Clone, PartialEq)]
 pub enum Color {
     White,
     Black,

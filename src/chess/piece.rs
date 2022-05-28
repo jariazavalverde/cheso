@@ -1,6 +1,7 @@
 use crate::chess::color::Color;
 
 // Enumeration of piece-type codes.
+#[derive(Copy, Clone, PartialEq)]
 pub enum Piece {
     Nil,
     Pawn(Color),
@@ -9,6 +10,20 @@ pub enum Piece {
     Rook(Color),
     Queen(Color),
     King(Color),
+}
+
+impl Piece {
+    pub fn get_color(self) -> Option<Color> {
+        match self {
+            Self::Nil => None,
+            Self::Pawn(color) => Some(color),
+            Self::Knight(color) => Some(color),
+            Self::Bishop(color) => Some(color),
+            Self::Rook(color) => Some(color),
+            Self::Queen(color) => Some(color),
+            Self::King(color) => Some(color),
+        }
+    }
 }
 
 impl std::fmt::Display for Piece {
