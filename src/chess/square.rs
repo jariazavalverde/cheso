@@ -4,6 +4,18 @@ use std::vec::Vec;
 static KNIGHT_MOVES: &'static [(isize, isize)] =
     &[(1, 2), (2, 1), (-1, 2), (2, -1), (1, -2), (-2, 1)];
 
+// King moves.
+static KING_MOVES: &'static [(isize, isize)] = &[
+    (0, 1),
+    (1, 0),
+    (0, -1),
+    (-1, 0),
+    (1, 1),
+    (-1, 1),
+    (1, -1),
+    (-1, -1),
+];
+
 // Square representation.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Square {
@@ -46,6 +58,17 @@ impl Square {
     // Get L-shape squares.
     pub fn get_l_squares(&self) -> Vec<Square> {
         (0..KNIGHT_MOVES.len())
+            .map(|i: usize| Square {
+                rank: self.rank + KNIGHT_MOVES[i].0,
+                file: self.file + KNIGHT_MOVES[i].1,
+            })
+            .filter(|square: &Square| square.on_board())
+            .collect()
+    }
+
+    // Get squares around.
+    pub fn get_squares_around(&self) -> Vec<Square> {
+        (0..KING_MOVES.len())
             .map(|i: usize| Square {
                 rank: self.rank + KNIGHT_MOVES[i].0,
                 file: self.file + KNIGHT_MOVES[i].1,

@@ -149,7 +149,8 @@ impl Board {
 
     // Populate the list with king movements.
     fn king_moves(&self, square: &Square, moves: &mut Vec<Movement>) -> () {
-        ()
+        // around
+        self.moves_until_collision(square, square.get_squares_around(), false, moves);
     }
 
     // Populate the list with movements until collision with another piece.
