@@ -1,5 +1,6 @@
 use crate::chess::color::Color;
 use crate::chess::piece::Piece;
+use crate::chess::square::Square;
 use std::vec::Vec;
 
 #[macro_export]
@@ -19,9 +20,6 @@ macro_rules! moves_until_collision {
         }
     };
 }
-
-// Square representation.
-type Square = (isize, isize);
 
 // Movement representation (from, to, promotion).
 type Movement = (Square, Square, Piece);
@@ -123,16 +121,9 @@ impl Board {
         }
     }
 
-    // Check if square is on board.
-    pub fn on_board(square: Square) -> bool {
-        let (x, y) = square;
-        return x >= 1 && x <= 8 && y >= 1 && y <= 8;
-    }
-
     // Get square content by indices $(x, y) \in [1,8]^2$.
     pub fn get_square(&self, square: Square) -> Piece {
-        let (x, y) = square;
-        let index: isize = (y - 1) * 8 + x - 1;
+        let index: isize = (square.y - 1) * 8 + square.x - 1;
         self.squares[index as usize]
     }
 
@@ -142,24 +133,25 @@ impl Board {
         let side_to_move: Color = self.side_to_move;
         for x in 1..=8 {
             for y in 1..=8 {
-                match self.get_square((x, y)) {
+                let square: Square = Square { x, y };
+                match self.get_square(square) {
                     Piece::Pawn(color) if color == side_to_move => {
-                        self.pawn_moves((x, y), &mut moves)
+                        self.pawn_moves(square, &mut moves)
                     }
                     Piece::Knight(color) if color == side_to_move => {
-                        self.knight_moves((x, y), &mut moves)
+                        self.knight_moves(square, &mut moves)
                     }
                     Piece::Bishop(color) if color == side_to_move => {
-                        self.bishop_moves((x, y), &mut moves)
+                        self.bishop_moves(square, &mut moves)
                     }
                     Piece::Rook(color) if color == side_to_move => {
-                        self.rook_moves((x, y), &mut moves)
+                        self.rook_moves(square, &mut moves)
                     }
                     Piece::Queen(color) if color == side_to_move => {
-                        self.queen_moves((x, y), &mut moves)
+                        self.queen_moves(square, &mut moves)
                     }
                     Piece::King(color) if color == side_to_move => {
-                        self.king_moves((x, y), &mut moves)
+                        self.king_moves(square, &mut moves)
                     }
                     _ => (),
                 }
@@ -176,10 +168,11 @@ impl Board {
     // Populate the list of knight movements.
     fn knight_moves(&self, square: Square, moves: &mut Vec<Movement>) -> () {
         for i in 0..KNIGHT_MOVES.len() {
-            let x: isize = square.0 + KNIGHT_MOVES[i].0;
-            let y: isize = square.1 + KNIGHT_MOVES[i].1;
-            let square_to: Square = (x, y);
-            if Board::on_board(square_to) {
+            let square_to: Square = Square {
+                x: square.x + KNIGHT_MOVES[i].0,
+                y: square.y + KNIGHT_MOVES[i].1,
+            };
+            if square_to.on_board() {
                 let piece: Piece = self.get_square(square);
                 if piece == Piece::Nil || piece.get_color() != Some(self.side_to_move) {
                     moves.push((square, square_to, Piece::Nil));
@@ -196,18 +189,21 @@ impl Board {
 
     // Populate the list of rook movements.
     fn rook_moves(&self, square: Square, moves: &mut Vec<Movement>) -> () {
-        let (x, y) = square;
         // south
-        let south = (1..y).rev().map(|y: isize| (x, y));
+        let south = (1..square.y)
+            .rev()
+            .map(|y: isize| Square { x: square.x, y: y });
         moves_until_collision!(self, square, south, moves);
         // north
-        let north = (y + 1..=8).map(|y: isize| (x, y));
+        let north = (square.y + 1..=8).map(|y: isize| Square { x: square.x, y: y });
         moves_until_collision!(self, square, north, moves);
         // east
-        let east = (1..x).rev().map(|x: isize| (x, y));
+        let east = (1..square.x)
+            .rev()
+            .map(|x: isize| Square { x: x, y: square.y });
         moves_until_collision!(self, square, east, moves);
         // west
-        let west = (x + 1..=8).map(|x: isize| (x, y));
+        let west = (square.x + 1..=8).map(|x: isize| Square { x: x, y: square.y });
         moves_until_collision!(self, square, west, moves);
     }
 
