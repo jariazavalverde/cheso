@@ -3,7 +3,8 @@ use crate::cheso::piece::Piece;
 use crate::cheso::square::Square;
 use std::collections::HashMap;
 
-// Board representation.
+/// Board representation.
+/// Pieces are stored as maps from squares to pieces (each color in its own hashmap).
 pub struct Board {
     pub white_pieces: HashMap<Square, Piece>,
     pub black_pieces: HashMap<Square, Piece>,
@@ -17,8 +18,8 @@ pub struct Board {
 }
 
 impl Board {
-    // Make an initial board.
-    pub fn init() -> Board {
+    /// Make an initial board.
+    pub fn new() -> Board {
         let mut white_pieces: HashMap<Square, Piece> = HashMap::new();
         let mut black_pieces: HashMap<Square, Piece> = HashMap::new();
         white_pieces.insert(Square { file: 1, rank: 1 }, Piece::Rook);
@@ -66,7 +67,7 @@ impl Board {
         }
     }
 
-    // Get the possible piece (and its color) in a square of the current position.
+    /// Get the possible piece (and its color) in a square of the current position.
     pub fn get_square(&self, square: &Square) -> Option<(Piece, Color)> {
         match self.white_pieces.get(square) {
             None => match self.black_pieces.get(&square) {
@@ -77,7 +78,7 @@ impl Board {
         }
     }
 
-    // Get the list of pieces to move in the current position.
+    /// Get the list of pieces to move in the current position.
     pub fn get_pieces_to_move(&self) -> &HashMap<Square, Piece> {
         match self.side_to_move {
             Color::White => &self.white_pieces,
