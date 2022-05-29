@@ -1,6 +1,6 @@
-use crate::chess::color::Color;
-use crate::chess::piece::Piece;
-use crate::chess::square::Square;
+use crate::cheso::color::Color;
+use crate::cheso::piece::Piece;
+use crate::cheso::square::Square;
 use std::collections::HashMap;
 
 // Board representation.

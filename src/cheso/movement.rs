@@ -1,6 +1,6 @@
-use crate::chess::board::Board;
-use crate::chess::piece::Piece;
-use crate::chess::square::Square;
+use crate::cheso::board::Board;
+use crate::cheso::piece::Piece;
+use crate::cheso::square::Square;
 
 // Knight movements.
 static KNIGHT_MOVES: &'static [(isize, isize)] =

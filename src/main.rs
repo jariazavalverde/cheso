@@ -1,3 +1,3 @@
-mod chess;
+mod cheso;
 
 fn main() {}
