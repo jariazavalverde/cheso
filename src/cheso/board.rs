@@ -1,5 +1,5 @@
 use crate::cheso::color::Color;
-use crate::cheso::movement::{Movement, KING_TRANSLATIONS, KNIGHT_TRANSLATIONS};
+use crate::cheso::movement::{Movement, KING_TRANSLATIONS, KNIGHT_TRANSLATIONS, PROMOTION_PIECES};
 use crate::cheso::piece::Piece;
 use crate::cheso::square::Square;
 use std::collections::HashMap;
@@ -68,7 +68,7 @@ impl Board {
         }
     }
 
-    /// Get the possible piece (and its color) in a square of the current position.
+    /// Get the possible piece (and its color) located in a square of the current position.
     pub fn get_square(&self, square: &Square) -> Option<(Piece, Color)> {
         match self.white_pieces.get(square) {
             None => match self.black_pieces.get(&square) {
@@ -79,11 +79,24 @@ impl Board {
         }
     }
 
+    // Check if square is empty.
+    pub fn is_empty_square(&self, square: &Square) -> bool {
+        self.get_square(square).is_none()
+    }
+
     /// Get the list of pieces to move in the current position.
     pub fn get_pieces_to_move(&self) -> &HashMap<Square, Piece> {
         match self.side_to_move {
             Color::White => &self.white_pieces,
             Color::Black => &self.black_pieces,
+        }
+    }
+
+    /// Get the castling rights (queenside, kingside) of the side to move.
+    pub fn get_castling_rights(&self) -> (bool, bool) {
+        match self.side_to_move {
+            Color::White => (self.white_queenside_castling, self.white_kingside_castling),
+            Color::Black => (self.black_queenside_castling, self.black_kingside_castling),
         }
     }
 
@@ -117,7 +130,102 @@ impl Board {
     /// Pawns capture one square diagonally in a forward direction.
     /// Pawns can make a special move (capture en passant).
     fn gen_pawn_moves(&self, from: &Square, moves: &mut Vec<Movement>) -> () {
-        ()
+        // forward
+        match from.forward(self.side_to_move) {
+            None => (),
+            Some(square) => {
+                if self.is_empty_square(&square) {
+                    // promotion
+                    if square.is_last_rank(self.side_to_move) {
+                        for i in 0..PROMOTION_PIECES.len() {
+                            moves.push(Movement {
+                                from: *from,
+                                to: square,
+                                capture: None,
+                                promotion: Some(PROMOTION_PIECES[i]),
+                            });
+                        }
+                    } else {
+                        moves.push(Movement {
+                            from: *from,
+                            to: square,
+                            capture: None,
+                            promotion: None,
+                        });
+                    }
+                }
+            }
+        }
+        // two squares
+        if from.is_pawn_rank(self.side_to_move) {
+            match from.forward2(self.side_to_move) {
+                None => (),
+                Some(square) => {
+                    if self.is_empty_square(&square) {
+                        moves.push(Movement {
+                            from: *from,
+                            to: square,
+                            capture: None,
+                            promotion: None,
+                        });
+                    }
+                }
+            }
+        }
+        // capture (left)
+        match from.pawn_left_capture(self.side_to_move) {
+            None => (),
+            Some(square) => match self.get_square(&square) {
+                Some((piece, color)) if color != self.side_to_move => {
+                    // promotion
+                    if square.is_last_rank(self.side_to_move) {
+                        for i in 0..PROMOTION_PIECES.len() {
+                            moves.push(Movement {
+                                from: *from,
+                                to: square,
+                                capture: Some(piece),
+                                promotion: Some(PROMOTION_PIECES[i]),
+                            });
+                        }
+                    } else {
+                        moves.push(Movement {
+                            from: *from,
+                            to: square,
+                            capture: Some(piece),
+                            promotion: None,
+                        });
+                    }
+                }
+                _ => (),
+            },
+        }
+        // capture (right)
+        match from.pawn_right_capture(self.side_to_move) {
+            None => (),
+            Some(square) => match self.get_square(&square) {
+                Some((piece, color)) if color != self.side_to_move => {
+                    // promotion
+                    if square.is_last_rank(self.side_to_move) {
+                        for i in 0..PROMOTION_PIECES.len() {
+                            moves.push(Movement {
+                                from: *from,
+                                to: square,
+                                capture: Some(piece),
+                                promotion: Some(PROMOTION_PIECES[i]),
+                            });
+                        }
+                    } else {
+                        moves.push(Movement {
+                            from: *from,
+                            to: square,
+                            capture: Some(piece),
+                            promotion: None,
+                        });
+                    }
+                }
+                _ => (),
+            },
+        }
     }
 
     /// Populate the list of movements from a square as a knight.

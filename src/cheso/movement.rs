@@ -21,6 +21,12 @@ pub static KING_TRANSLATIONS: &'static [(isize, isize)] = &[
     (-1, -1),
 ];
 
+/// Promotion pieces.
+///
+/// Constant to generate all possible promotions.
+pub static PROMOTION_PIECES: &'static [Piece] =
+    &[Piece::Queen, Piece::Rook, Piece::Bishop, Piece::Knight];
+
 /// Movement representation.
 ///
 /// A movement is represented by the original square of the piece, the square where it goes.
