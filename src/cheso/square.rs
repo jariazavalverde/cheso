@@ -1,14 +1,12 @@
-use std::vec::Vec;
-
 /// A square of the board.
 ///
-/// This enumeration is mainly used to store pieces in the board and to represent movements.
-/// The square is supposed to be between rank (row) 1 and 8, and between file (column) 1 and 8.
-/// Using the functions of this module makes it impossible to get an invalid square (out of range).
+/// This enumeration is used to store pieces in the board and to represent movements.
+/// An square must be between rank (row) 1 and 8, and between file (column) 1 and 8.
+/// It is impossible to generate an invalid (out of range) square.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Square {
-    pub rank: isize,
-    pub file: isize,
+    rank: isize,
+    file: isize,
 }
 
 impl Square {
@@ -18,6 +16,16 @@ impl Square {
             rank: std::cmp::max(1, std::cmp::min(8, rank)),
             file: std::cmp::max(1, std::cmp::min(8, file)),
         }
+    }
+
+    // Get the rank of the square.
+    pub fn rank(&self) -> isize {
+        self.rank
+    }
+
+    // Get the file of the square.
+    pub fn file(&self) -> isize {
+        self.file
     }
 
     /// Check if square is on board.
