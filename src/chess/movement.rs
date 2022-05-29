@@ -43,6 +43,22 @@ impl Movement {
         moves
     }
 
+    // Check if a movement has collision.
+    pub fn has_collision(&self, board: &Board) -> bool {
+        match board.get_square(&self.to) {
+            None => false,
+            Some(_) => true,
+        }
+    }
+
+    // Check if a movement is valid (only for the two squares involved).
+    pub fn is_valid(&self, board: &Board) -> bool {
+        match board.get_square(&self.to) {
+            Some((_, color)) if color == board.side_to_move => false,
+            _ => true,
+        }
+    }
+
     // Populate the list of movements from a square as a pawn.
     fn as_pawn(board: &Board, from: &Square, moves: &mut Vec<Movement>) -> () {
         ()
@@ -99,18 +115,13 @@ impl Movement {
             let (rank, file) = displacements[i];
             let to: Square = from.displace(rank, file);
             if to.on_board() {
-                match board.get_square(&to) {
-                    None => moves.push(Movement {
-                        from: *from,
-                        to: to,
-                        promotion: None,
-                    }),
-                    Some((_, color)) if color != board.side_to_move => moves.push(Movement {
-                        from: *from,
-                        to: to,
-                        promotion: None,
-                    }),
-                    _ => (),
+                let movement: Movement = Movement {
+                    from: *from,
+                    to: to,
+                    promotion: None,
+                };
+                if movement.is_valid(board) {
+                    moves.push(movement);
                 }
             }
         }
@@ -129,23 +140,16 @@ impl Movement {
             if !to.on_board() {
                 break;
             }
-            match board.get_square(&to) {
-                None => moves.push(Movement {
-                    from: *from,
-                    to: to,
-                    promotion: None,
-                }),
-                Some((_, color)) if color != board.side_to_move => {
-                    moves.push(Movement {
-                        from: *from,
-                        to: to,
-                        promotion: None,
-                    });
-                    break;
-                }
-                _ => {
-                    break;
-                }
+            let movement: Movement = Movement {
+                from: *from,
+                to: to,
+                promotion: None,
+            };
+            if movement.is_valid(board) {
+                moves.push(movement);
+            }
+            if movement.has_collision(board) {
+                break;
             }
         }
     }
