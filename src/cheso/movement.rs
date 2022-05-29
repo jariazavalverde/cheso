@@ -27,22 +27,6 @@ struct Movement {
 }
 
 impl Movement {
-    // Generate the list of movements.
-    pub fn generate(board: &Board) -> Vec<Movement> {
-        let mut moves: Vec<Movement> = Vec::new();
-        for (square, piece) in board.get_pieces_to_move() {
-            match piece {
-                Piece::Pawn => Self::as_pawn(board, square, &mut moves),
-                Piece::Knight => Self::as_knight(board, square, &mut moves),
-                Piece::Bishop => Self::as_bishop(board, square, &mut moves),
-                Piece::Rook => Self::as_rook(board, square, &mut moves),
-                Piece::Queen => Self::as_queen(board, square, &mut moves),
-                Piece::King => Self::as_king(board, square, &mut moves),
-            }
-        }
-        moves
-    }
-
     // Check if a movement has collision.
     pub fn has_collision(&self, board: &Board) -> bool {
         match board.get_square(&self.to) {
@@ -57,6 +41,22 @@ impl Movement {
             Some((_, color)) if color == board.side_to_move => false,
             _ => true,
         }
+    }
+
+    // Generate the list of movements.
+    pub fn generate(board: &Board) -> Vec<Movement> {
+        let mut moves: Vec<Movement> = Vec::new();
+        for (square, piece) in board.get_pieces_to_move() {
+            match piece {
+                Piece::Pawn => Self::as_pawn(board, square, &mut moves),
+                Piece::Knight => Self::as_knight(board, square, &mut moves),
+                Piece::Bishop => Self::as_bishop(board, square, &mut moves),
+                Piece::Rook => Self::as_rook(board, square, &mut moves),
+                Piece::Queen => Self::as_queen(board, square, &mut moves),
+                Piece::King => Self::as_king(board, square, &mut moves),
+            }
+        }
+        moves
     }
 
     // Populate the list of movements from a square as a pawn.
